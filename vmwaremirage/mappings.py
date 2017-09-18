@@ -104,7 +104,7 @@ pending_device_field_mapping = {
     },
     'OS_VERSION': {
         'name': 'DEVICE_OS_VERSION',
-        'type': 'String'
+        'type': 'OsVersion'
     },
     'CONNECTION_STATE': {
         'name': 'DEVICE_CONNECTION_STATE',

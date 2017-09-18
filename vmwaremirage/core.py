@@ -3,7 +3,7 @@ from zeep.plugins import HistoryPlugin
 from zeep.exceptions import Fault
 import zeep.cache
 import zeep.transports
-from vmwaremirage_mappings import query_type_mapping, cvd_field_mapping, layer_field_mapping, collection_field_mapping, pending_device_field_mapping, policy_field_mapping, volume_field_mapping
+from .mappings import query_type_mapping, cvd_field_mapping, layer_field_mapping, collection_field_mapping, pending_device_field_mapping, policy_field_mapping, volume_field_mapping
 
 class VmwareMirageClient():
     def __init__(self, server, username, password, port=7443, cache=zeep.cache.InMemoryCache()):
@@ -32,6 +32,8 @@ class VmwareMirageClient():
             query_filter = self.query_factory[query_function](Field=field['name'], Value=xsd.AnyObject(xsd.Long(), value))
         elif field['type'] is 'Boolean':
             query_filter = self.query_factory[query_function](Field=field['name'], Value=xsd.AnyObject(xsd.Boolean(), value))
+        elif field['type'] is 'OsVersion':
+            query_filter = self.query_factory[query_function](Field=field['name'], Value=xsd.AnyObject(self.query_factory.OsVersion, value))
         else:
             raise Exception("Can't determine Value type")
         if get_definition:

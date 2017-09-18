@@ -1,2 +1,6 @@
 __pycache__
 *.pyc
+vmwaremirage.egg-info
+dist
+build
+messing.py
