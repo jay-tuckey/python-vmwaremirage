@@ -3,62 +3,9 @@ from zeep.plugins import HistoryPlugin
 from zeep.exceptions import Fault
 import zeep.cache
 import zeep.transports
+from vmwaremirage_mappings import query_type_mapping, cvd_field_mapping, layer_field_mapping, collection_field_mapping, pending_device_field_mapping, policy_field_mapping, volume_field_mapping
 
 class VmwareMirageClient():
-    cvd_field_mapping = {
-        'ID': 'CVD_ID',
-        'DEVICE_ID': 'CVD_DEVICE_ID',
-        'POLICY_ID': 'CVD_POLICY_ID',
-        'NAME': 'CVD_NAME',
-        'USER_NAME': 'CVD_USER_NAME',
-        'POLICY_NAME': 'CVD_POLICY_NAME',
-        'CONNECTION_STATE': 'CVD_DEVICE_CONNECTION_STATE',
-        'CLIENT_STATUS': 'CVD_DEVICE_CLIENT_STATUS',
-        'PROGRESS': 'CVD_PROGRESS',
-        'MACHINE_VERSION': 'CVD_MACHINE_VERSION'
-    }
-
-    query_type_mapping = {
-        'BEGINS_WITH': 'QueryFilterBeginsWith',
-        'ENDS_WITH': 'QueryFilterEndsWith',
-        'CONTAINS': 'QueryFilterContains',
-        'EQUALS': 'QueryFilterEquals',
-        'NOT_EQUALS': 'QueryFilterNotEquals'
-    }
-
-    layer_field_mapping = {
-        'ID': 'BASE_IMAGE_LAYER_ID',
-        'TYPE': 'BASE_IMAGE_LAYER_TYPE',
-        'NAME': 'BASE_IMAGE_LAYER_NAME'
-    }
-
-    collection_field_mapping = {
-        'ID': 'COLLECTION_ID',
-        'NAME': 'COLLECTION_NAME',
-        'DESCRIPTION': 'COLLECTION_DESCRIPTION'
-    }
-
-    pending_device_field_mapping = {
-        'ID': 'DEVICE_ID',
-        'NAME': 'DEVICE_NAME',
-        'USER_NAME': 'DEVICE_USER_NAME',
-        'MODEL_NAME': 'DEVICE_MODEL_NAME',
-        'VENDOR_NAME': 'DEVICE_VENDOR_NAME',
-        'OS_VERSION': 'DEVICE_OS_VERSION',
-        'CONNECTION_STATE': 'DEVICE_CONNECTION_STATE'
-    }
-
-    policy_field_mapping = {
-        'ID': 'POLICY_ID',
-        'NAME': 'POLICY_NAME'
-    }
-
-    volume_field_mapping = {
-        'ID': 'VOLUME_ID',
-        'NAME': 'VOLUME_NAME',
-        'PATH': 'VOLUME_PATH'
-    }
-
     def __init__(self, server, username, password, port=7443, cache=zeep.cache.InMemoryCache()):
         transport = zeep.transports.Transport(cache=cache)
         self.history = HistoryPlugin()
@@ -76,10 +23,19 @@ class VmwareMirageClient():
 
 
     def query(self, field, value, page=1, query_type='BEGINS_WITH', get_definition=True):
-        query_function = self.query_type_mapping[query_type]
-        query_filter = self.query_factory[query_function](Field=field, Value=xsd.AnyObject(xsd.String(), value))
+        query_function = query_type_mapping[query_type]
+        if field['type'] is 'String':
+            query_filter = self.query_factory[query_function](Field=field['name'], Value=xsd.AnyObject(xsd.String(), value))
+        elif field['type'] is 'Id':
+            query_filter = self.query_factory[query_function](Field=field['name'], Value=self.type_factory.Id(value))
+        elif field['type'] is 'Long':
+            query_filter = self.query_factory[query_function](Field=field['name'], Value=xsd.AnyObject(xsd.Long(), value))
+        elif field['type'] is 'Boolean':
+            query_filter = self.query_factory[query_function](Field=field['name'], Value=xsd.AnyObject(xsd.Boolean(), value))
+        else:
+            raise Exception("Can't determine Value type")
         if get_definition:
-            return(self.query_factory.QueryDefinition(Filter=query_filter, Page=page))
+            return self.query_factory.QueryDefinition(Filter=query_filter, Page=page)
         else:
             return query_filter
 
@@ -102,7 +58,7 @@ class VmwareMirageClient():
 
 
     def get_cvds(self, by='NAME', value='', query_type='BEGINS_WITH'):
-        field = self.cvd_field_mapping[by]
+        field = cvd_field_mapping[by]
         cvds = self._collect_query_results(
                 field=field,
                 value=value,
@@ -118,7 +74,7 @@ class VmwareMirageClient():
 
 
     def get_collection_cvds(self, collection_id, by='NAME', value='', query_type='BEGINS_WITH'):
-        field = self.cvd_field_mapping[by]
+        field = cvd_field_mapping[by]
         cvds = self._collect_query_results(
                 field=field,
                 value=value,
@@ -130,7 +86,7 @@ class VmwareMirageClient():
 
 
     def get_app_layers(self, by='NAME', value='', query_type='BEGINS_WITH'):
-        field = self.layer_field_mapping[by]
+        field = layer_field_mapping[by]
         layers = self._collect_query_results(
                 field=field,
                 value=value,
@@ -141,7 +97,7 @@ class VmwareMirageClient():
 
 
     def get_base_layers(self, by='NAME', value='', query_type='BEGINS_WITH'):
-        field = self.layer_field_mapping[by]
+        field = layer_field_mapping[by]
         layers = self._collect_query_results(
                 field=field,
                 value=value,
@@ -152,7 +108,7 @@ class VmwareMirageClient():
 
 
     def get_collections(self, by='NAME', value='', query_type='BEGINS_WITH'):
-        field = self.collection_field_mapping[by]
+        field = collection_field_mapping[by]
         collections = self._collect_query_results(
                 field=field,
                 value=value,
@@ -163,7 +119,7 @@ class VmwareMirageClient():
 
 
     def get_pending_devices(self, by='NAME', value='', query_type='BEGINS_WITH'):
-        field = self.pending_device_field_mapping[by]
+        field = pending_device_field_mapping[by]
         pending_devices = self._collect_query_results(
                 field=field,
                 value=value,
@@ -174,7 +130,7 @@ class VmwareMirageClient():
 
 
     def get_policies(self, by='NAME', value='', query_type='BEGINS_WITH'):
-        field = self.policy_field_mapping[by]
+        field = policy_field_mapping[by]
         policies = self._collect_query_results(
                 field=field,
                 value=value,
@@ -183,9 +139,9 @@ class VmwareMirageClient():
             )
         return policies
 
-    
+
     def get_volumes(self, by='NAME', value='', query_type='BEGINS_WITH'):
-        field = self.volume_field_mapping[by]
+        field = volume_field_mapping[by]
         volumes = self._collect_query_results(
                 field=field,
                 value=value,
