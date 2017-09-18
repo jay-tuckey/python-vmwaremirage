@@ -1,10 +1,25 @@
 python-vmwaremirage
 ====
-Python API for VMWare Mirage
+Unofficial Python API for VMWare Mirage
 
 This API is based on the brilliant zeep Python SOAP client. All this API provides is a wrapper for the zeep library, giving a set of convenience functions to perform common actions. To learn more about zeep, visit their `github <https://github.com/mvantellingen/python-zeep>`_ or `documentation. <http://docs.python-zeep.org/en/master/>`_
 
-To start with, instantiate an instance of the Mirage API::
+Installation
+----
+::
+
+    # On Ubuntu 17.04 I needed to install to get zeep to build:
+    $ sudo apt install libxml2-dev libxslt1-dev
+    # Alternatively, use pip to get zeep with the pre-built wheel files
+    $ pip install zeep
+    
+    # Then, check out the directory, and run the setup.py:
+    $ git clone https://github.com/jay-tuckey/python-vmwaremirage.git
+    $ cd python-vmwaremirage/
+    $ python setup.py install
+    
+
+To start using it, instantiate an instance of the Mirage API::
 
     from vmwaremirage import VmwareMirageClient
     import os
