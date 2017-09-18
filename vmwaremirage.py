@@ -48,6 +48,17 @@ class VmwareMirageClient():
         'CONNECTION_STATE': 'DEVICE_CONNECTION_STATE'
     }
 
+    policy_field_mapping = {
+        'ID': 'POLICY_ID',
+        'NAME': 'POLICY_NAME'
+    }
+
+    volume_field_mapping = {
+        'ID': 'VOLUME_ID',
+        'NAME': 'VOLUME_NAME',
+        'PATH': 'VOLUME_PATH'
+    }
+
     def __init__(self, server, username, password, port=7443, cache=zeep.cache.InMemoryCache()):
         transport = zeep.transports.Transport(cache=cache)
         self.history = HistoryPlugin()
@@ -139,48 +150,46 @@ class VmwareMirageClient():
             )
         return layers
 
-    #TODO
+
     def get_collections(self, by='NAME', value='', query_type='BEGINS_WITH'):
         field = self.collection_field_mapping[by]
-        layers = self._collect_query_results(
+        collections = self._collect_query_results(
                 field=field,
                 value=value,
                 query_type=query_type,
                 query_function=self.client.service.Collection_Query
             )
-        return layers
+        return collections
 
-    #TODO
+
     def get_pending_devices(self, by='NAME', value='', query_type='BEGINS_WITH'):
         field = self.pending_device_field_mapping[by]
-        layers = self._collect_query_results(
+        pending_devices = self._collect_query_results(
                 field=field,
                 value=value,
                 query_type=query_type,
                 query_function=self.client.service.PendingDevice_Query
             )
-        return layers
+        return pending_devices
 
-    #TODO
+
     def get_policies(self, by='NAME', value='', query_type='BEGINS_WITH'):
-        return
-        field = self.layer_field_mapping[by]
-        layers = self._collect_query_results(
+        field = self.policy_field_mapping[by]
+        policies = self._collect_query_results(
                 field=field,
                 value=value,
                 query_type=query_type,
                 query_function=self.client.service.Policy_Query
             )
-        return layers
+        return policies
 
-    #TODO
+    
     def get_volumes(self, by='NAME', value='', query_type='BEGINS_WITH'):
-        return
-        field = self.layer_field_mapping[by]
-        layers = self._collect_query_results(
+        field = self.volume_field_mapping[by]
+        volumes = self._collect_query_results(
                 field=field,
                 value=value,
                 query_type=query_type,
                 query_function=self.client.service.Volume_Query
             )
-        return layers
+        return volumes
