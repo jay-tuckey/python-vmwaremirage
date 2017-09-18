@@ -26,6 +26,28 @@ class VmwareMirageClient():
         'NOT_EQUALS': 'QueryFilterNotEquals'
     }
 
+    layer_field_mapping = {
+        'ID': 'BASE_IMAGE_LAYER_ID',
+        'TYPE': 'BASE_IMAGE_LAYER_TYPE',
+        'NAME': 'BASE_IMAGE_LAYER_NAME'
+    }
+
+    collection_field_mapping = {
+        'ID': 'COLLECTION_ID',
+        'NAME': 'COLLECTION_NAME',
+        'DESCRIPTION': 'COLLECTION_DESCRIPTION'
+    }
+
+    pending_device_field_mapping = {
+        'ID': 'DEVICE_ID',
+        'NAME': 'DEVICE_NAME',
+        'USER_NAME': 'DEVICE_USER_NAME',
+        'MODEL_NAME': 'DEVICE_MODEL_NAME',
+        'VENDOR_NAME': 'DEVICE_VENDOR_NAME',
+        'OS_VERSION': 'DEVICE_OS_VERSION',
+        'CONNECTION_STATE': 'DEVICE_CONNECTION_STATE'
+    }
+
     def __init__(self, server, username, password, port=7443, cache=zeep.cache.InMemoryCache()):
         transport = zeep.transports.Transport(cache=cache)
         self.history = HistoryPlugin()
@@ -51,19 +73,114 @@ class VmwareMirageClient():
             return query_filter
 
 
-    def get_cvds(self, by='NAME', value='', query_type='BEGINS_WITH'):
-        field = self.cvd_field_mapping[by]
-        cvds = []
+    def _collect_query_results(self, field, value, query_type, query_function, **kwargs):
+        results = []
         current_page = 1
         while True:
             query = self.query(field=field, value=value, page=current_page, query_type=query_type)
-            result = self.client.service.Cvd_Query(queryDefinition=query)
+            result = query_function(queryDefinition=query, **kwargs)
             # Drop out if there are no results
             if result['Elements'] is None:
                 break
-            cvds += result['Elements']['anyType']
+            results += result['Elements']['anyType']
             # Stop if on the last page
             if not result['NextPageAvailable']:
                 break
             current_page += 1
+        return results
+
+
+    def get_cvds(self, by='NAME', value='', query_type='BEGINS_WITH'):
+        field = self.cvd_field_mapping[by]
+        cvds = self._collect_query_results(
+                field=field,
+                value=value,
+                query_type=query_type,
+                query_function=self.client.service.Cvd_Query
+            )
         return cvds
+
+
+    def get_cvd(self, id):
+        result = self.client.service.Cvd_Get(id=id)
+        return result
+
+
+    def get_collection_cvds(self, collection_id, by='NAME', value='', query_type='BEGINS_WITH'):
+        field = self.cvd_field_mapping[by]
+        cvds = self._collect_query_results(
+                field=field,
+                value=value,
+                query_type=query_type,
+                query_function=self.client.service.CollectionCvd_Query,
+                collectionId=collection_id
+            )
+        return cvds
+
+
+    def get_app_layers(self, by='NAME', value='', query_type='BEGINS_WITH'):
+        field = self.layer_field_mapping[by]
+        layers = self._collect_query_results(
+                field=field,
+                value=value,
+                query_type=query_type,
+                query_function=self.client.service.AppLayer_Query
+            )
+        return layers
+
+
+    def get_base_layers(self, by='NAME', value='', query_type='BEGINS_WITH'):
+        field = self.layer_field_mapping[by]
+        layers = self._collect_query_results(
+                field=field,
+                value=value,
+                query_type=query_type,
+                query_function=self.client.service.BaseLayer_Query
+            )
+        return layers
+
+    #TODO
+    def get_collections(self, by='NAME', value='', query_type='BEGINS_WITH'):
+        field = self.collection_field_mapping[by]
+        layers = self._collect_query_results(
+                field=field,
+                value=value,
+                query_type=query_type,
+                query_function=self.client.service.Collection_Query
+            )
+        return layers
+
+    #TODO
+    def get_pending_devices(self, by='NAME', value='', query_type='BEGINS_WITH'):
+        field = self.pending_device_field_mapping[by]
+        layers = self._collect_query_results(
+                field=field,
+                value=value,
+                query_type=query_type,
+                query_function=self.client.service.PendingDevice_Query
+            )
+        return layers
+
+    #TODO
+    def get_policies(self, by='NAME', value='', query_type='BEGINS_WITH'):
+        return
+        field = self.layer_field_mapping[by]
+        layers = self._collect_query_results(
+                field=field,
+                value=value,
+                query_type=query_type,
+                query_function=self.client.service.Policy_Query
+            )
+        return layers
+
+    #TODO
+    def get_volumes(self, by='NAME', value='', query_type='BEGINS_WITH'):
+        return
+        field = self.layer_field_mapping[by]
+        layers = self._collect_query_results(
+                field=field,
+                value=value,
+                query_type=query_type,
+                query_function=self.client.service.Volume_Query
+            )
+        return layers
