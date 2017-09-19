@@ -33,7 +33,7 @@ def query(vm, field, value, page=1, query_type='BEGINS_WITH'):
         filters = [query_filter(vm, field=field, value=item, query_type=query_type) for item in value]
         q_filter = multi_query(vm, filters, 'OR')
     else:
-        q_filter = query_filter(field=field, value=value, query_type=query_type)
+        q_filter = query_filter(vm, field=field, value=value, query_type=query_type)
     return vm.query_factory.QueryDefinition(Filter=q_filter, Page=page)
 
 
