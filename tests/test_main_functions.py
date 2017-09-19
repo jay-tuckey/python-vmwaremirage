@@ -1,10 +1,11 @@
 from vmwaremirage import VmwareMirageClient
 import config
+import config_secure
 import os
 
 
-vm = VmwareMirageClient(server=config.server,
-                        username=config.username,
+vm = VmwareMirageClient(server=config_secure.server,
+                        username=config_secure.username,
                         password=os.environ['VMWARE_MIRAGE_PASSWORD'])
 
 
