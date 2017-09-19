@@ -14,6 +14,8 @@ def query_filter(vm, field, value, query_type):
         query_filter = vm.query_factory[query_function](Field=field['name'], Value=xsd.AnyObject(xsd.Boolean(), value))
     elif field['type'] is 'OsVersion':
         query_filter = vm.query_factory[query_function](Field=field['name'], Value=xsd.AnyObject(vm.query_factory.OsVersion, value))
+    elif field['type'] is 'ClientState':
+        query_filter = vm.query_factory[query_function](Field=field['name'], Value=xsd.AnyObject(vm.query_factory.ClientState, value))
     else:
         raise Exception("Can't determine Value type")
     return query_filter

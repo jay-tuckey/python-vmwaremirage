@@ -37,7 +37,7 @@ cvd_field_mapping = {
     },
     'CLIENT_STATUS': {
         'name': 'CVD_DEVICE_CLIENT_STATUS',
-        'type': 'String'
+        'type': 'ClientState'
     },
     'PROGRESS': {
         'name': 'CVD_PROGRESS',
