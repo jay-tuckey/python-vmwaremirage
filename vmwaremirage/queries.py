@@ -1,3 +1,4 @@
+from zeep import xsd
 from .mappings import query_type_mapping
 
 
