@@ -4,3 +4,4 @@ vmwaremirage.egg-info
 dist
 build
 messing.py
+.cache
