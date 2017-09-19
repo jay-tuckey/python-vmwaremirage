@@ -18,11 +18,20 @@ def query_filter(vm, field, value, query_type):
     return query_filter
 
 
+def multi_query(vm, filters, join_type):
+    query_array = vm.query_factory.ArrayOfQueryFilter(QueryFilter=filters)
+    if join_type is 'OR':
+        multi_filter = vm.query_factory.QueryFilterOr(Filters=query_array)
+    elif join_type is 'AND':
+        multi_filter = vm.query_factory.QueryFilterAnd(Filters=query_array)
+    else:
+        raise Exception('join_type must be either OR or AND')
+    return multi_filter
+
 def query(vm, field, value, page=1, query_type='BEGINS_WITH'):
     if isinstance(value, list):
         filters = [query_filter(vm, field=field, value=item, query_type=query_type) for item in value]
-        query_array = vm.query_factory.ArrayOfQueryFilter(QueryFilter=filters)
-        q_filter = vm.query_factory.QueryFilterOr(Filters=query_array)
+        q_filter = multi_query(vm, filters, 'OR')
     else:
         q_filter = query_filter(field=field, value=value, query_type=query_type)
     return vm.query_factory.QueryDefinition(Filter=q_filter, Page=page)
