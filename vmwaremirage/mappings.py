@@ -82,7 +82,7 @@ collection_field_mapping = {
 }
 
 pending_device_field_mapping = {
-    'ID': {
+    'DEVICE_ID': {
         'name': 'DEVICE_ID',
         'type': 'Id'
     },
