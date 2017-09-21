@@ -9,6 +9,19 @@ vm = VmwareMirageClient(server=config_secure.server,
                         password=os.environ['VMWARE_MIRAGE_PASSWORD'])
 
 
+def test_reauth():
+    # Cofirm we are working
+    cvd = vm.get_cvd(config.cvd_1['id'])
+    assert cvd.Name == config.cvd_1['name']
+
+    # Logout
+    vm.client.service.Logout()
+
+    # And try again. It should automatically re-authenticate
+    cvd = vm.get_cvd(config.cvd_1['id'])
+    assert cvd.Name == config.cvd_1['name']
+
+
 def test_get_cvds():
     # Test the by id function
     cvd = vm.get_cvd(config.cvd_1['id'])
@@ -81,7 +94,7 @@ def test_get_collections():
     assert len(colls) >= 1
 
 
-def test_get_cvds():
+def test_get_pending_devices():
     pends = vm.get_pending_devices(by='DEVICE_ID', value=config.pending['deviceid'], query_type='EQUALS')
     assert len(pends) == 1
 
