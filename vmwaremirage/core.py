@@ -15,15 +15,28 @@ class VmwareMirageClient():
 
         self.username = username
         self.password = password
-        try:
-            login_response = self.client.service.Login(username=username, password=password)
-        except Fault as e:
-            raise e.message
+
+        login_response = self.client.service.Login(username=username, password=password)
+
 
         self.query_factory = self.client.type_factory('vmware.mirage.mit.query')
         self.type_factory = self.client.type_factory('vmware.mirage.mit.types')
 
 
+    def reauth(function):
+        def wrapper(self, *args, **kwargs):
+            try:
+                return function(self, *args, **kwargs)
+            except Fault as e:
+                if e.message == 'The session is not authenticated.':
+                    login_response = self.client.service.Login(username=self.username, password=self.password)
+                    return function(self, *args, **kwargs)
+                else:
+                    raise(e)
+        return wrapper
+
+
+    @reauth
     def get_cvds(self, by='NAME', value='', query_type='BEGINS_WITH'):
         field = cvd_field_mapping[by]
         cvds = _collect_query_results(
@@ -36,11 +49,13 @@ class VmwareMirageClient():
         return cvds
 
 
+    @reauth
     def get_cvd(self, id):
         result = self.client.service.Cvd_Get(id=id)
         return result
 
 
+    @reauth
     def get_collection_cvds(self, collection_id, by='NAME', value='', query_type='BEGINS_WITH'):
         field = cvd_field_mapping[by]
         cvds = _collect_query_results(
@@ -54,6 +69,7 @@ class VmwareMirageClient():
         return cvds
 
 
+    @reauth
     def get_app_layers(self, by='NAME', value='', query_type='BEGINS_WITH'):
         field = layer_field_mapping[by]
         layers = _collect_query_results(
@@ -66,6 +82,7 @@ class VmwareMirageClient():
         return layers
 
 
+    @reauth
     def get_base_layers(self, by='NAME', value='', query_type='BEGINS_WITH'):
         field = layer_field_mapping[by]
         layers = _collect_query_results(
@@ -78,6 +95,7 @@ class VmwareMirageClient():
         return layers
 
 
+    @reauth
     def get_collections(self, by='NAME', value='', query_type='BEGINS_WITH'):
         field = collection_field_mapping[by]
         collections = _collect_query_results(
@@ -90,6 +108,7 @@ class VmwareMirageClient():
         return collections
 
 
+    @reauth
     def get_pending_devices(self, by='NAME', value='', query_type='BEGINS_WITH'):
         field = pending_device_field_mapping[by]
         pending_devices = _collect_query_results(
@@ -102,6 +121,7 @@ class VmwareMirageClient():
         return pending_devices
 
 
+    @reauth
     def get_policies(self, by='NAME', value='', query_type='BEGINS_WITH'):
         field = policy_field_mapping[by]
         policies = _collect_query_results(
@@ -114,6 +134,7 @@ class VmwareMirageClient():
         return policies
 
 
+    @reauth
     def get_volumes(self, by='NAME', value='', query_type='BEGINS_WITH'):
         field = volume_field_mapping[by]
         volumes = _collect_query_results(
