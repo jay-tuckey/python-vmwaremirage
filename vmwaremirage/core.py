@@ -5,7 +5,7 @@ import zeep.cache
 import zeep.transports
 from .mappings import query_type_mapping, cvd_field_mapping, layer_field_mapping, collection_field_mapping, pending_device_field_mapping, policy_field_mapping, volume_field_mapping
 from .queries import _collect_query_results
-
+from collections import namedtuple
 
 class VmwareMirageClient():
     def __init__(self, server, username, password, port=7443, cache=zeep.cache.InMemoryCache()):
@@ -145,3 +145,56 @@ class VmwareMirageClient():
                 query_function=self.client.service.Volume_Query
             )
         return volumes
+
+
+
+    @reauth
+    def provision_pending_device(self, pending_device_id, policy, base_layer, app_layers, identity_info, volume_id, ignore_warnings=False):
+        pending_device = self.type_factory.ArrayOfId([self.type_factory.Id(pending_device_id)])
+
+        _policy = self.type_factory.ImageId(
+            self.type_factory.Id(policy.id),
+            self.type_factory.ImageVersion(policy.major_version, policy.minor_version)
+            )
+
+        _base_layer = self.type_factory.ImageId(
+            self.type_factory.Id(base_layer.id),
+            self.type_factory.ImageVersion(base_layer.major_version, base_layer.minor_version)
+            )
+
+        app_layers_list = [
+            self.type_factory.ImageId(
+                self.type_factory.Id(app.id),
+                self.type_factory.ImageVersion(app.major_version, app.minor_version)
+                )
+            for app in app_layers
+            ]
+
+        app_layers_array = self.type_factory.ArrayOfImageId(app_layers_list)
+
+        _identity_info = self.type_factory.MachineIdentityInfo(
+            DomainMember=identity_info.domain_member,
+            DomainOrWorkgroupName=identity_info.domain_or_workgroup_name,
+            MachineName=identity_info.new_machine_name,
+            OU=identity_info.ou,
+            Password=identity_info.password,
+            User=identity_info.user
+            )
+
+        _volume_id = self.type_factory.Id(volume_id)
+
+        return self.client.service.PendingDevice_Provision(
+            pendingDevices=pending_device,
+            policyImageId=_policy,
+            baseLayerImageId=_base_layer,
+            appLayerImageIds=app_layers_array,
+            identityInfo=_identity_info,
+            volumeId=_volume_id,
+            ignoreWarnings=ignore_warnings
+            )
+
+
+    Policy = namedtuple('Policy', ['id', 'major_version', 'minor_version'])
+    AppLayer = namedtuple('AppLayer', ['id', 'major_version', 'minor_version'])
+    BaseLayer = namedtuple('BaseLayer', ['id', 'major_version', 'minor_version'])
+    IdentityInfo = namedtuple('IdentityInfo', ['domain_member', 'domain_or_workgroup_name', 'new_machine_name', 'ou', 'password', 'user'])
