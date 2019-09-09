@@ -41,6 +41,9 @@ Some of the available functions are::
     # Get one specific cvd by ID (Note get_cvd not get_cvds)
     cvd = vm.get_cvd(10025)
 
+    # Delete a provisioned cvd
+    result = vm.delete_cvd(10025)
+
     ### Layers ###
     # Get all app layers
     apps = vm.get_app_layers()

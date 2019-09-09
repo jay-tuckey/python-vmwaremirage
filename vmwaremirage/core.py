@@ -193,6 +193,13 @@ class VmwareMirageClient():
             ignoreWarnings=ignore_warnings
             )
 
+    @reauth
+    def delete_cvd(self, id):
+        cvd_id = self.type_factory.Id(id)
+        delete_array = self.type_factory.ArrayOfId([cvd_id])
+        result = self.client.service.Cvd_Delete(cvdIds=delete_array)
+        return result
+
 
     Policy = namedtuple('Policy', ['id', 'major_version', 'minor_version'])
     AppLayer = namedtuple('AppLayer', ['id', 'major_version', 'minor_version'])
